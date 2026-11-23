@@ -1,0 +1,116 @@
+# OrderFlow code style.
+# Nullable reference types are enabled in Directory.Build.props (Phase 1, <Nullable>enable</Nullable>);
+# an .editorconfig cannot turn them on, it can only set the severity of their warnings.
+
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{json,yml,yaml}]
+indent_size = 2
+
+[*.{csproj,props,targets,xml,config}]
+indent_size = 2
+
+[*.cs]
+
+# ---------------------------------------------------------------
+# Language rules
+# ---------------------------------------------------------------
+# File-scoped namespaces
+csharp_style_namespace_declarations = file_scoped:warning
+
+# Nullable reference types: keep the warnings visible
+dotnet_diagnostic.CS8600.severity = warning
+dotnet_diagnostic.CS8602.severity = warning
+dotnet_diagnostic.CS8603.severity = warning
+dotnet_diagnostic.CS8604.severity = warning
+dotnet_diagnostic.CS8618.severity = warning
+
+# Formatting
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+
+# ---------------------------------------------------------------
+# Naming rules
+# ---------------------------------------------------------------
+
+# Symbols
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+
+dotnet_naming_symbols.types.applicable_kinds = class, struct, enum, delegate
+dotnet_naming_symbols.types.applicable_accessibilities = *
+
+dotnet_naming_symbols.members.applicable_kinds = method, property, event, local_function
+dotnet_naming_symbols.members.applicable_accessibilities = *
+
+dotnet_naming_symbols.async_methods.applicable_kinds = method, local_function
+dotnet_naming_symbols.async_methods.applicable_accessibilities = *
+dotnet_naming_symbols.async_methods.required_modifiers = async
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private, private_protected
+
+dotnet_naming_symbols.constant_fields.applicable_kinds = field
+dotnet_naming_symbols.constant_fields.applicable_accessibilities = *
+dotnet_naming_symbols.constant_fields.required_modifiers = const
+
+dotnet_naming_symbols.locals_and_parameters.applicable_kinds = local, parameter
+dotnet_naming_symbols.locals_and_parameters.applicable_accessibilities = *
+
+# Styles
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+
+dotnet_naming_style.i_prefix.capitalization = pascal_case
+dotnet_naming_style.i_prefix.required_prefix = I
+
+dotnet_naming_style.async_suffix.capitalization = pascal_case
+dotnet_naming_style.async_suffix.required_suffix = Async
+
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+
+# Rules (the most specific rules come first)
+dotnet_naming_rule.interfaces_should_have_i_prefix.symbols = interfaces
+dotnet_naming_rule.interfaces_should_have_i_prefix.style = i_prefix
+dotnet_naming_rule.interfaces_should_have_i_prefix.severity = warning
+
+dotnet_naming_rule.async_methods_should_end_with_async.symbols = async_methods
+dotnet_naming_rule.async_methods_should_end_with_async.style = async_suffix
+dotnet_naming_rule.async_methods_should_end_with_async.severity = warning
+
+dotnet_naming_rule.constants_should_be_pascal_case.symbols = constant_fields
+dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.constants_should_be_pascal_case.severity = warning
+
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.style = underscore_camel_case
+dotnet_naming_rule.private_fields_should_be_underscore_camel_case.severity = warning
+
+dotnet_naming_rule.types_should_be_pascal_case.symbols = types
+dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.types_should_be_pascal_case.severity = warning
+
+dotnet_naming_rule.members_should_be_pascal_case.symbols = members
+dotnet_naming_rule.members_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.members_should_be_pascal_case.severity = warning
+
+dotnet_naming_rule.locals_and_parameters_should_be_camel_case.symbols = locals_and_parameters
+dotnet_naming_rule.locals_and_parameters_should_be_camel_case.style = camel_case
+dotnet_naming_rule.locals_and_parameters_should_be_camel_case.severity = warning
+
+# Note: the Async rule matches methods declared with the async modifier. Interface methods and
+# methods that return a Task without async must follow the same suffix by review.

@@ -1,0 +1,83 @@
+# ---------------------------------------------------------------
+# .NET build output
+# ---------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+artifacts/
+publish/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+*.dll.config
+
+# Tests and coverage
+[Tt]est[Rr]esults/
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+lcov.info
+BenchmarkDotNet.Artifacts/
+
+# ---------------------------------------------------------------
+# Environment files and secrets (only .env.example is committed)
+# ---------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+secrets/
+
+# ---------------------------------------------------------------
+# Docker
+# ---------------------------------------------------------------
+# Local volume or data folders created next to the compose files
+.docker-data/
+docker-data/
+
+# ---------------------------------------------------------------
+# Logs
+# ---------------------------------------------------------------
+logs/
+[Ll]og/
+*.log
+
+# ---------------------------------------------------------------
+# IDE and editor files
+# ---------------------------------------------------------------
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
+
+# ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+# ---------------------------------------------------------------
+# Operating system files
+# ---------------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
