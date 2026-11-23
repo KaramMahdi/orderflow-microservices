@@ -47,7 +47,7 @@ Source: section 2.11 of `docker-learning-project-plan.pdf` and `orderflow-phases
 | R-043 | File and database out of sync after a crash | Decided | Record Pending first, write the file, then Active. A job marks stale Pending as Failed. | [ADR-0012](decisions/ADR-0012-upload-safety-and-consistency.md) |
 | R-045 | How the request source is determined, and whether it can be faked | Decided | The client_id claim in the JWT. Anonymous calls are Unknown. | [ADR-0013](decisions/ADR-0013-request-source-from-client-id.md) |
 | R-046 | How product search works | Decided | LIKE 'abc%' with an index. | [ADR-0014](decisions/ADR-0014-product-search-like-prefix.md) |
-| R-048 | Swagger exposure and tooling | Decided | Swagger enabled in every environment. Tooling chosen in Phase 1. | [ADR-0015](decisions/ADR-0015-swagger-in-every-environment.md) |
+| R-048 | Swagger exposure and tooling | Decided | Swagger enabled in every environment. Tooling: the built-in OpenAPI document (Microsoft.AspNetCore.OpenApi) with Swagger UI. | [ADR-0015](decisions/ADR-0015-swagger-in-every-environment.md) |
 | R-049 | Audit columns: nullability and who acts with no user | Decided | All six nullable. A null means a record added by hand. | [ADR-0016](decisions/ADR-0016-nullable-audit-columns.md) |
 | R-050 | Soft-delete purge and bulk operations that skip the interceptor | Decided | Nothing deleted for now. No ExecuteDelete. ExecuteUpdate sets the audit columns through a helper. | [ADR-0005](decisions/ADR-0005-no-deletion-soft-delete-only.md) |
 | R-051 | Where the Redis, RabbitMQ and file adapters live | Decided | C: Shared.Infrastructure. | [ADR-0017](decisions/ADR-0017-shared-projects.md) |
@@ -148,4 +148,3 @@ needs them.
 | Precision and scale of money columns | ADR-0003 | Phase 1 |
 | Offset or cursor (keyset) pagination; clamp or reject a page size above the maximum | ADR-0006 | Phase 1 |
 | Collation and Arabic normalization for product search | ADR-0014 | Phase 1 |
-| Swagger tooling: Swashbuckle or the built-in OpenAPI document with Swagger UI | ADR-0015 | Phase 1 |

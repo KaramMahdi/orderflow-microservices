@@ -26,6 +26,15 @@ shows every endpoint and schema to anyone who can reach the host.
 Option chosen: **D, Swagger in every environment, including Production**, through an Options flag
 that stays on, with a Bearer **Authorize** button.
 
+Tooling (decided by Karam on 2026-11-24): **the built-in OpenAPI document with Swagger UI.**
+
+- `Microsoft.AspNetCore.OpenApi` generates the OpenAPI document (`MapOpenApi()`).
+- `Swashbuckle.AspNetCore.SwaggerUI` (the UI package only) shows it (`UseSwaggerUI(...)`).
+- The full Swashbuckle generator is not used.
+- The Bearer security scheme (the Authorize button), the `ErrorDto` error responses and the
+  `ErrorCode` enum are added through OpenAPI document transformers.
+- The exact package versions and APIs are checked at the start of Phase 1.
+
 ## Consequences
 
 - Every endpoint and schema is visible to anyone who can reach the host. Calls still need a valid
@@ -37,8 +46,8 @@ that stays on, with a Bearer **Authorize** button.
 - From Phase 4 each service publishes its own OpenAPI document, and the gateway shows one Swagger
   page listing them all.
 - Phase 6 re-confirms this decision with evidence (R-066).
-- **Not decided here:** the tooling (Swashbuckle or the built-in OpenAPI document with Swagger UI).
-  It is chosen in Phase 1 after checking the current package versions.
+- The built-in generator follows Microsoft's direction for .NET 9 and 10 and supports OpenAPI 3.1.
+  It has fewer examples than Swashbuckle, and its customization uses transformers, not filters.
 
 ## Revisit when
 

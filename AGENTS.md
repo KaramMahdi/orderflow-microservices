@@ -105,7 +105,7 @@ All Accepted, decided by Karam. Full register: [docs/risks.md](docs/risks.md).
 - [ADR-0012](docs/decisions/ADR-0012-upload-safety-and-consistency.md): size limit, signature allow-list, ClamAV; Pending, then Active (R-042, R-043).
 - [ADR-0013](docs/decisions/ADR-0013-request-source-from-client-id.md): request source from the client_id claim; anonymous is Unknown (R-045).
 - [ADR-0014](docs/decisions/ADR-0014-product-search-like-prefix.md): product search with LIKE 'abc%' and an index (R-046).
-- [ADR-0015](docs/decisions/ADR-0015-swagger-in-every-environment.md): Swagger in every environment (R-048).
+- [ADR-0015](docs/decisions/ADR-0015-swagger-in-every-environment.md): Swagger in every environment; built-in OpenAPI document with Swagger UI (R-048).
 - [ADR-0016](docs/decisions/ADR-0016-nullable-audit-columns.md): all six audit columns nullable (R-049).
 - [ADR-0017](docs/decisions/ADR-0017-shared-projects.md): Shared.Infrastructure and Shared.AspNetCore (R-051, R-055).
 - [ADR-0018](docs/decisions/ADR-0018-no-cqrs-no-mediatr.md): no CQRS, no MediatR; Application Services (R-052).
