@@ -79,4 +79,4 @@ decisions summary and the workflow. Every AI tool working in this repository mus
 
 ## License
 
-Not chosen yet.
+No license. All rights reserved. The code is published for reading and reference only.
