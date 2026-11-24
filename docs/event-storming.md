@@ -28,13 +28,13 @@ Legend: **Command** (an intent, blue sticky), **Event** (a fact in the past tens
 | 3 | Customer | Browse / search products (prefix) | read model | - | Catalog |
 | 4 | Customer | Place order | Order | OrderPlaced | Orders |
 | 5 | Policy: when an order is placed, reserve its stock | Reserve stock | StockItem | StockReserved | Catalog |
-| 6 | *(hot spot H1)* | Confirm order | Order | OrderConfirmed | Orders |
+| 6 | Policy: when the stock of every product is reserved | Confirm order | Order | OrderConfirmed | Orders |
 | 7 | Policy: when an order is created, collect the payment | Process payment | Payment | PaymentCompleted or PaymentFailed | Payments |
 | 8a | Policy: when payment completed | Mark order paid | Order | OrderPaid | Orders |
 | 8b | Policy: when payment completed | Complete stock movement | StockItem | StockCompleted | Catalog |
-| 9 | Policy: when payment failed *(hot spot H1)* | Cancel order / release stock | Order, StockItem | OrderCancelled, StockReleased | Orders, Catalog |
-| 10 | Hangfire job, every 5 minutes | Mark expired reservations Failed (older than 15 minutes) | StockItem | StockReleased | Catalog |
-| 11 | Payment after release *(hot spot H2)* | Compensate | Order / Payment | ? | Orders, Payments |
+| 9 | Policy: when payment failed | Nothing is cancelled: the order keeps waiting for payment while its reservation lives | Order | - | Orders |
+| 10 | Hangfire job, every 5 minutes | Mark expired reservations Failed (older than 15 minutes), then cancel their orders | StockItem, Order | StockReleased, OrderCancelled | Catalog, Orders |
+| 11 | Policy: when a payment arrives after the reservation expired (the order is already Cancelled) | Refund payment (simulated in Phase 1). The order stays Cancelled | Payment | *(refund event: name to confirm)* | Payments |
 | 12 | Policy: when an order or payment event happens | Send notification | Notification | NotificationSent or NotificationFailed | Notifications |
 | 13 | Hangfire job (Phase 3) | Generate invoice PDF | FileRecord | FileStored | Orders, Files |
 
@@ -72,10 +72,12 @@ Catalog also publishes product changes so Orders can keep its product snapshot (
 
 ## Hot spots (open, not decided)
 
-- **H1.** The order lifecycle: is `OrderConfirmed` raised when the stock is reserved (before payment),
-  and does an expired reservation or a failed payment cancel the order automatically?
-- **H2.** A payment that arrives after the reservation was marked Failed: a new reservation or a
-  refund (left open in ADR-0001)?
+- **H1. Resolved (ADR-0001):** Placed, then Confirmed when the stock is reserved, then Paid or
+  Cancelled. A failed payment does not cancel the order; an expired reservation cancels it; Cancelled
+  is final and is never reopened. (Phase 4: a Placed order that Catalog cannot reserve is decided
+  with R-016.)
+- **H2. Resolved (ADR-0001):** a payment that arrives after the reservation expired is always
+  refunded. The order stays Cancelled.
 - **H3.** The cart: does it exist in Phase 1, and which context owns it?
 - **H4.** Customers: its own service in Phase 4, or inside Orders? How is a Customer created from an
   Identity user at registration?

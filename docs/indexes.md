@@ -71,4 +71,6 @@ others get their `IX_` or `UX_` name in Phase 1.
   (ADR-0003). The INCLUDE list must be revised.
 - **C. Table name.** The plan's index table names this table `Stock`; the domain model calls the
   aggregate `StockItem`. This catalog uses `StockItems`.
+- **D. Open statuses.** Row 15 filters on "open statuses (pending, processing)". The decided order
+  lifecycle is Placed, Confirmed, Paid, Cancelled (ADR-0001), so the filter is aligned with it in Phase 1.
 - Every row: confirm against the real query and its execution plan, then set the status to Confirmed.

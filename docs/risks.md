@@ -28,7 +28,7 @@ Source: section 2.11 of `docker-learning-project-plan.pdf` and `orderflow-phases
 
 | ID | Title | Status | Decision or options | ADR |
 |----|-------|--------|---------------------|-----|
-| R-001 | Two orders for the last unit at the same time | Decided | D: stock reservation as StockMovements, made atomic by A (R-001b). Option G (CHECK constraint) is not decided. | [ADR-0001](decisions/ADR-0001-stock-reservation.md) |
+| R-001 | Two orders for the last unit at the same time | Decided | D: stock reservation as StockMovements, made atomic by A (R-001b). Option G added as a safety net: CHECK (0 <= Reserved <= OnHand), a violation answers 409. | [ADR-0001](decisions/ADR-0001-stock-reservation.md) |
 | R-001b | How the stock reservation is modeled and protected | Decided | A: a Reserved counter in StockItem updated by one conditional statement, the movement added in the same transaction. Job every 5 minutes, 15-minute cut-off. | [ADR-0001](decisions/ADR-0001-stock-reservation.md) |
 | R-002 | Duplicate order from a double click or a client retry | Decided | Rate limiting: one create-order per user per minute (tunable). The limits are accepted. | [ADR-0002](decisions/ADR-0002-duplicate-orders-rate-limiting.md) |
 | R-003 | Money and rounding errors | Decided | decimal with fixed precision inside a Money value object (amount and currency code), several currencies. | [ADR-0003](decisions/ADR-0003-money-and-currencies.md) |
@@ -143,8 +143,6 @@ needs them.
 
 | Point | Where | Needed by |
 |-------|-------|-----------|
-| CHECK constraint `0 <= Reserved <= OnHand` (R-001 option G) | ADR-0001 | Phase 1 |
-| Compensation when a payment arrives after the reservation was marked Failed (a new reservation or a refund) | ADR-0001 | Phase 1 |
 | Precision and scale of money columns | ADR-0003 | Phase 1 |
 | Offset or cursor (keyset) pagination; clamp or reject a page size above the maximum | ADR-0006 | Phase 1 |
 | Collation and Arabic normalization for product search | ADR-0014 | Phase 1 |

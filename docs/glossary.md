@@ -36,13 +36,14 @@ Rules:
 | Order | A customer's request to buy products, in one currency. The aggregate root of this context. |
 | Order item | One product line of an order: product, quantity, unit price. Lives only inside an Order. |
 | Order number | The business number of an order. Unique. Different from the Guid Id. |
-| Order status | The lifecycle state of an order. Transitions are controlled by the Order. *(the exact states: to confirm)* |
+| Order status | The lifecycle state of an order, controlled by the Order: Placed, then Confirmed, then Paid or Cancelled (ADR-0001). Enum names are set in Phase 1. |
+| Confirmed | The stock of every product of the order is reserved; the order waits for payment. |
 | Place an order | The act of creating an order. Limited by the create-order rate limit. |
 | Total | The sum of the order items, in the order's currency. |
 | Address | The delivery address of an order (value object). |
 | Product snapshot | Orders' own small read model of a product (name, price at order time), updated from Catalog events. Not the Catalog Product. |
 | Source | The request source stored on the order. |
-| Cancel | Ending an order before it is completed. *(when and who: to confirm)* |
+| Cancel | Ending an order before it is completed. Decided (ADR-0001): an expired reservation cancels the order; a failed payment does not. Cancelled is final: never reopened. *(who else may cancel: to confirm)* |
 
 ## Catalog (supporting)
 
@@ -82,6 +83,8 @@ Rules:
 | Attempt | One try to pay. |
 | Payment completed | The money was collected. |
 | Payment failed | The money was not collected. |
+| Refund | Returning a collected payment. Every late payment is refunded (ADR-0001). Simulated in Phase 1. |
+| Late payment | A payment that arrives after its reservation expired (the movement is Failed and the order is Cancelled). |
 
 ## Notifications (generic)
 

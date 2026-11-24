@@ -50,6 +50,47 @@ Option chosen: **R-001 D, made atomic by R-001b A.**
   product fails, everything rolls back.
 - Completing a movement updates only rows that are still Reserved.
 
+CHECK constraint (R-001 option G, decided by Karam on 2026-11-24): **added.**
+
+- `StockItems` has `CHECK (Reserved >= 0 AND Reserved <= OnHand)`. This also guarantees
+  `OnHand >= 0`.
+- It is a last safety net. The domain still enforces the StockItem invariant first ("Reserved never
+  above on hand"): lowering `OnHand` below `Reserved` throws an `ErrorException` before saving.
+- It is defined in Fluent API (`ToTable(t => t.HasCheckConstraint(...))`), its name lives in a
+  constants class, and it flows into the migration.
+- A violation (SQL Server error 547 on this constraint) is mapped by the EF exception mapper to
+  **409 Conflict** (`ErrorCode.Conflict`, `Common.Conflict`), the same way as a unique-index
+  violation. It is logged as a Warning with the CorrelationId (section 2.24).
+
+Order lifecycle (decided by Karam on 2026-11-24):
+
+- **Confirmed means the stock is reserved.** `OrderConfirmed` is raised when the reservation of every
+  product of the order succeeds.
+- The path is: Placed, then Confirmed (stock held, waiting for payment), then Paid or Cancelled.
+- In Phase 1 the reservation runs in the same transaction as placing the order, so `OrderPlaced` and
+  `OrderConfirmed` happen together. If the stock is not enough, the order is not created (409).
+- From Phase 4 the reservation is asynchronous (Orders waits for Catalog's `StockReserved`), so an
+  order can stay Placed for a while. What happens to a Placed order when Catalog has no stock is
+  decided with R-016.
+- The exact status enum names and numbers are set in Phase 1, following these states.
+
+Order status when the order is not paid (decided by Karam on 2026-11-24):
+
+- A failed payment does **not** cancel the order. The order keeps waiting for payment while its
+  reservation lives.
+- An expired reservation (the job marks the movement Failed) **cancels the order automatically**
+  (OrderCancelled).
+
+Late payment compensation (decided by Karam on 2026-11-24): **always refund.**
+
+- A late payment is a payment that arrives after its reservation expired: completing the movement
+  touches no row because the job already marked it Failed, and the order is already Cancelled.
+- A Cancelled order is never reopened. The late payment is always refunded, even if the stock is
+  available again. The customer places a new order.
+- No new reservation is attempted.
+- The handling is idempotent: a payment event delivered twice must not refund twice.
+- It is logged as a Warning with the order id, the payment id and the CorrelationId.
+
 Why: no read-then-write gap, no retries, little memory, and the model matches real life (held items).
 
 ## Consequences
@@ -60,12 +101,23 @@ Why: no read-then-write gap, no retries, little memory, and the model matches re
   sets `LastModifierId` and `LastModificationTime` there (see ADR-0005).
 - The 15-minute cut-off uses the server clock, so a daylight-saving change can release reservations
   an hour early or late (accepted in ADR-0004).
-- Race to watch: a payment can arrive just as the job marks the movement Failed. The order then
-  needs a compensation. **Which compensation (a new reservation or a refund) is not decided yet.**
-- **Not decided here:** the CHECK constraint `0 <= Reserved <= OnHand` (R-001 option G) is noted as
-  a cheap safety net in the plan, but it is not decided.
+- Race to watch: a payment can arrive just as the job marks the movement Failed. It is handled by
+  the late payment compensation above.
+- Payments gets a refund operation (decided by Karam on 2026-11-24). In Phase 1 it is simulated,
+  through the provider adapter in Payments.Infrastructure.
+- Cancelled is a final status for an order: no transition leaves it. The order stays Cancelled after
+  the refund.
+- The customer loses the order even when the stock is available again. Accepted for simpler rules.
+- Tests: a failed payment leaves the order waiting; an expired reservation cancels the order; a late
+  payment is refunded whether or not stock is available, and the order stays Cancelled; the same late
+  payment delivered twice is refunded only once.
+- With the CHECK constraint, a bug that would store an impossible stock (for example a job releasing
+  the same movement twice) fails loudly instead of saving silently. Because it answers 409, such a
+  bug looks like a normal conflict to the client; the logs must be watched for it.
 - Tests: the last-unit concurrency test on a real SQL Server container (N parallel CreateOrder calls
-  with `Task.WhenAll`, exactly one succeeds, stock ends at 0), and the counter-equals-movements test.
+  with `Task.WhenAll`, exactly one succeeds, stock ends at 0), and the counter-equals-movements test. For the constraint: an update that
+  would make `Reserved` negative or above `OnHand` is rejected by SQL Server and returns 409 with an
+  `ErrorDto`; lowering `OnHand` below `Reserved` is rejected by the domain.
 
 ## Revisit when
 
