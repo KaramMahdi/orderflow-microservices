@@ -58,7 +58,7 @@ Source: section 2.11 of `docker-learning-project-plan.pdf` and `orderflow-phases
 | R-057 | Shape of ErrorDto and ErrorCode | Decided | A code and a message only. | [ADR-0021](decisions/ADR-0021-errors-translations-and-errordto.md) |
 | R-058 | Fallback when a message cannot be loaded | Decided | The last value in memory, else an empty message. | [ADR-0021](decisions/ADR-0021-errors-translations-and-errordto.md) |
 | R-060 | Where an adapter that belongs to one service lives | Decided | Its own project: Payments.Infrastructure. | [ADR-0020](decisions/ADR-0020-one-solution-and-payments-infrastructure.md) |
-| R-062 | Where the file storage adapter lives | Decided | Stays in Shared.Infrastructure. | [ADR-0011](decisions/ADR-0011-file-storage-naming-and-access.md) |
+| R-062 | Where the file storage adapter lives | Decided | The implementation stays in Shared.Infrastructure; the interface is in Domain.Shared.Layer. | [ADR-0011](decisions/ADR-0011-file-storage-naming-and-access.md) |
 | R-063 | How several currencies work | Decided | One currency per order, no conversion. One price per currency per product. | [ADR-0003](decisions/ADR-0003-money-and-currencies.md) |
 
 ## Before Phase 2 (Redis)
