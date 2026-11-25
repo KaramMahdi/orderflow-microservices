@@ -3,10 +3,24 @@
   <!-- Central package management: every NuGet version is declared here, once (golden rule 7). -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- A PackageVersion here also pins the package when it only arrives transitively. -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
+
+  <!-- Data access. Same version that Microsoft.EntityFrameworkCore.SqlServer 10.0.x depends on. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.7" />
+  </ItemGroup>
+
+  <!-- Transitive security pins. -->
+  <ItemGroup>
+    <!-- Microsoft.Data.SqlClient 6.1.7 brings 9.0.11: CVE-2026-70162 and CVE-2026-84008 (fixed in 9.0.21 and 10.0.13). -->
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.15" />
+  </ItemGroup>
 
   <!-- Tests: xUnit.net v3 on Microsoft Testing Platform (dotnet test mode set in global.json). -->
   <ItemGroup>
+    <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.13.5" />
     <PackageVersion Include="xunit.v3" Version="4.0.3" />
   </ItemGroup>
 

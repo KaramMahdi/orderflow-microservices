@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <PackageReference Include="TngTech.ArchUnitNET.xUnitV3" />
+  </ItemGroup>
+
   <!-- References every src project so the architecture tests can inspect each assembly. -->
   <ItemGroup>
     <ProjectReference Include="..\..\src\Domain.Shared.Layer\Domain.Shared.Layer.csproj" />

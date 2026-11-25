@@ -1,0 +1,14 @@
+# Keep the build context small and free of secrets.
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/.idea/
+**/*.user
+**/TestResults/
+.git/
+.env
+.env.*
+docs/
+docker/
+test/

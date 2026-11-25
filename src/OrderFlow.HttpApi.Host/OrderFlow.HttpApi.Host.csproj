@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\OrderFlow.Application\OrderFlow.Application.csproj" />
     <ProjectReference Include="..\OrderFlow.EntityFrameworkCore\OrderFlow.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\OrderFlow.HttpApi\OrderFlow.HttpApi.csproj" />
