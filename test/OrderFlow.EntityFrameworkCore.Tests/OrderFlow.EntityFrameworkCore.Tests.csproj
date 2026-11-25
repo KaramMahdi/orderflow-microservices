@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\OrderFlow.EntityFrameworkCore\OrderFlow.EntityFrameworkCore.csproj" />
+  </ItemGroup>
+
+</Project>

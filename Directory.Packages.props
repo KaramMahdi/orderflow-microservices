@@ -1,0 +1,13 @@
+<Project>
+
+  <!-- Central package management: every NuGet version is declared here, once (golden rule 7). -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <!-- Tests: xUnit.net v3 on Microsoft Testing Platform (dotnet test mode set in global.json). -->
+  <ItemGroup>
+    <PackageVersion Include="xunit.v3" Version="4.0.3" />
+  </ItemGroup>
+
+</Project>
