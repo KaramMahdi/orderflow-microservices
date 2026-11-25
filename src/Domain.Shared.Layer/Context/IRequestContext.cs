@@ -21,6 +21,9 @@ public interface IRequestContext
     /// <summary>The version of the client app, when the client sends one.</summary>
     string? ClientVersion { get; }
 
-    /// <summary>The language of the request (ar or en), from Accept-Language.</summary>
+    /// <summary>
+    /// The language of the request, one of <see cref="Localization.Languages.Supported"/>, from
+    /// Accept-Language; <see cref="Localization.Languages.Default"/> when none is supported.
+    /// </summary>
     string Language { get; }
 }

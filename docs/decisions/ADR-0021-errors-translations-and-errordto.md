@@ -48,6 +48,9 @@ R-058 (fallback when a message cannot be loaded): embedded minimal messages in t
 - The Translations table: Id, ModuleName, ListName (optional), Name, Language (ar or en), Value
   (nvarchar with a maximum length, never max), and the six audit columns. Seeded by the DbMigrator
   from one JSON file per module and language.
+- **Language codes are string constants (decided by Karam, 2026-11-26):** the `Languages` class in
+  Domain.Shared.Layer holds `ar`, `en`, the default (`en`) and the supported list. The Language column
+  stores the two-letter code and `IRequestContext.Language` is a string; no enum.
 - The frontend and mobile clients define the same `ErrorCode` values and show their own text for a
   code with an empty message.
 - Tests: each exception type gives the expected code and status; an unknown exception returns the
