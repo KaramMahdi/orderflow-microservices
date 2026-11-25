@@ -156,6 +156,24 @@ Pull Request checklist:
 - Reply to Karam in Arabic. Write every file in the repository in English.
 - Push, add remotes, create branches or create tags only when Karam asks. Never force push.
 
+## Session rules
+
+These rules apply to every working session. "Me" and "my" mean Karam.
+
+- Reply to me in Arabic. Write every file in English.
+- Do only the current prompt. Do not add features outside the plan.
+- Never decide an open risk yourself. If something is Open or not covered by AGENTS.md, docs/risks.md or the ADRs, stop and ask me.
+- If AGENTS.md, the ADRs and the PDFs disagree, list the disagreement and ask me.
+- Do not guess package versions or library APIs. Check the current documentation. If you cannot check, say so and leave a TODO.
+- Keep every golden rule. Nothing hard-coded: Options, constants, enums.
+- Write the tests together with the code of each milestone.
+- NuGet versions only in Directory.Packages.props.
+- Small commits with clear messages. Never push. Never force push.
+- Finish with the real output of dotnet build, dotnet test, and docker compose up --build when it applies. No summaries of output.
+- Every prompt ends with a report in Arabic: what you built, what you did not do, every deviation from the plan, every assumption, and what you need from me. Then stop.
+- A prompts (Build) stop for my review and do not commit. B prompts (Prove) end with a commit.
+- Branch: phase-1-modular-monolith. Plan: docs/orderflow-phases-plan.pdf. Reference: docs/docker-learning-project-plan.pdf (read only the section you need).
+
 ## Commands
 
 To be filled in Phase 1 (build, test, run with Docker Compose, add a migration).
