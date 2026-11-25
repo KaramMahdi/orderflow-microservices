@@ -8,8 +8,8 @@ into business rules.
 The project is delivered phase by phase. Each phase adds one new thing on top of the previous one,
 and no phase starts before its risks have a written decision (an ADR).
 
-> **Current state: Phase 0 (foundation).** This repository holds the architecture documents and the
-> instructions for AI tools only. There is no source code yet. Code starts in Phase 1.
+> **Current state: Phase 1 (modular monolith), in progress.** Phase 0 (foundation) is done: the
+> architecture documents and the instructions for AI tools. Source code starts in this phase.
 
 ## Stack
 

@@ -8,8 +8,9 @@ in `docs/`; this file links to it instead of copying it.
 OrderFlow is an order-management reference system built with full DDD on .NET 10, SQL Server and
 Docker, delivered phase by phase (see [README.md](README.md)).
 
-- **Current phase: 0 (foundation).** Architecture documents and this file only. No source code.
-- **Next phase: 1 (modular monolith).** Not started. It starts only when Karam says so.
+- **Current phase: 1 (modular monolith).** Started by Karam. Branch `phase-1-modular-monolith`.
+  Phase 0 (foundation: architecture documents and this file) is done.
+- **Next phase: 2 (Redis).** Not started. It starts only when Karam says so.
 - Bounded contexts: Orders, Catalog, Customers, Payments, Notifications, Identity, Files
   ([context map](docs/context-map.md), [glossary](docs/glossary.md)).
 
