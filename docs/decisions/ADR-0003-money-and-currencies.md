@@ -39,8 +39,10 @@ Why: exact arithmetic, and no exchange-rate data to maintain.
 - A product without a price in the order's currency cannot be added to that order.
 - Totals are summed in one currency only, which keeps the Order invariant simple
   ("all items in the order's one currency").
-- **Not decided here:** the exact precision and scale of the money columns. They are set and
-  recorded in Phase 1.
+- **Precision and scale (decided by Karam, 2026-11-25):** every money amount column is
+  `decimal(18,2)`: 18 digits in total, 2 of them after the decimal point.
+- **Still open:** what happens to an amount with more than 2 decimal places (reject or round), and
+  how currencies with 3 minor units (for example KWD, BHD, JOD, OMR) are handled.
 - Tests: domain unit tests for `Money` (equality, arithmetic, currency mismatch) and for the Order
   currency invariant.
 

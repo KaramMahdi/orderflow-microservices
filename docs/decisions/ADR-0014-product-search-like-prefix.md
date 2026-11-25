@@ -22,16 +22,29 @@ the table.
 
 ## Decision
 
-Option chosen: **A, prefix search `LIKE 'abc%'` with an index on the product name.**
+Option chosen: **A with D: prefix search `LIKE 'abc%'` on a normalized search column, with an
+index on that column.** D was added by Karam on 2026-11-25.
+
+- A product keeps its `Name` as written and also stores `NormalizedName`.
+- The same normalization runs on the product name when it is saved and on the search text before
+  the query:
+  - `أ`, `إ` and `آ` become `ا`.
+  - `ة` becomes `ه`.
+  - `ى` becomes `ي`.
+  - Diacritics (tashkeel) and tatweel (`ـ`) are removed.
+- The search query runs `LIKE 'abc%'` on `NormalizedName`, never on `Name`.
+
+Why: the result does not depend on the database collation, and the normalization is covered by
+unit tests.
 
 ## Consequences
 
 - Only "starts with" matches. A word in the middle of a name is not found.
-- The index is recorded in [docs/indexes.md](../indexes.md).
-- **Not decided here:** the collation of the name column and any normalization of Arabic letter
-  variants, case and accents. The plan says to choose the collation deliberately.
-- Tests: the search query uses the index (execution plan check), and a prefix search returns the
-  expected products.
+- One extra column and its index on the product table. The index is recorded in
+  [docs/indexes.md](../indexes.md).
+- `NormalizedName` is set by the Product aggregate whenever the name changes, so it never drifts.
+- Tests: unit tests for every normalization rule; the search query uses the index (execution plan
+  check); a search for `احمد` finds a product named `أحمد`.
 
 ## Revisit when
 

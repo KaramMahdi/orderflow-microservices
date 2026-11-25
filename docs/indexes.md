@@ -37,7 +37,7 @@ Every row is **Proposed** until Phase 1 confirms it against the real queries and
 | 4 | RefreshTokens | UserId, ExpiresAt | Filtered: not revoked | - | Active tokens of a user, cleanup | Phase 1 | Proposed |
 | 5 | Products | Sku | Unique, filtered: not deleted | - | SKU lookup and uniqueness | Phase 1 | Proposed |
 | 6 | Products | CategoryId, Name | Filtered: active and not deleted | Price, ImageFileId | Category listing sorted by name | Phase 1 | Proposed, see note A and B |
-| 7 | Products | Name | Nonclustered | - | Prefix search `LIKE 'abc%'` (ADR-0014) | Phase 1 | Proposed |
+| 7 | Products | NormalizedName | Nonclustered | - | Prefix search `LIKE 'abc%'` on the normalized name (ADR-0014) | Phase 1 | Proposed |
 | 8 | ProductPrices | ProductId, Currency | Unique, filtered: not deleted | Amount | The price of a product in a currency | Phase 1 | Proposed |
 | 9 | StockItems | ProductId | Unique (one row per product) | - | Stock changes and the conditional reservation update (ADR-0001) | Phase 1 | Proposed, see note C |
 | 10 | StockMovements | ProductId, Status | Nonclustered | Quantity | Sum of reserved quantity per product | Phase 1 | Proposed |

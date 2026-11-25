@@ -31,10 +31,10 @@ Source: section 2.11 of `docker-learning-project-plan.pdf` and `orderflow-phases
 | R-001 | Two orders for the last unit at the same time | Decided | D: stock reservation as StockMovements, made atomic by A (R-001b). Option G added as a safety net: CHECK (0 <= Reserved <= OnHand), a violation answers 409. | [ADR-0001](decisions/ADR-0001-stock-reservation.md) |
 | R-001b | How the stock reservation is modeled and protected | Decided | A: a Reserved counter in StockItem updated by one conditional statement, the movement added in the same transaction. Job every 5 minutes, 15-minute cut-off. | [ADR-0001](decisions/ADR-0001-stock-reservation.md) |
 | R-002 | Duplicate order from a double click or a client retry | Decided | Rate limiting: one create-order per user per minute (tunable). The limits are accepted. | [ADR-0002](decisions/ADR-0002-duplicate-orders-rate-limiting.md) |
-| R-003 | Money and rounding errors | Decided | decimal with fixed precision inside a Money value object (amount and currency code), several currencies. | [ADR-0003](decisions/ADR-0003-money-and-currencies.md) |
+| R-003 | Money and rounding errors | Decided | decimal(18,2) inside a Money value object (amount and currency code), several currencies. | [ADR-0003](decisions/ADR-0003-money-and-currencies.md) |
 | R-004 | Dates and time zones | Decided | The server's local time (DateTime.Now). The same TZ in every container. | [ADR-0004](decisions/ADR-0004-server-local-time.md) |
 | R-005 | Deleting data and audit trail | Decided | Nothing is deleted for now. Soft delete only. | [ADR-0005](decisions/ADR-0005-no-deletion-soft-delete-only.md) |
-| R-006 | Unbounded list queries (memory) | Decided | Page size 10 by default, 1000 at most, from Options. | [ADR-0006](decisions/ADR-0006-paging.md) |
+| R-006 | Unbounded list queries (memory) | Decided | Offset pagination. Page size 10 by default, 1000 at most, from Options. | [ADR-0006](decisions/ADR-0006-paging.md) |
 | R-027 | IQueryable leaks persistence into the Application layer | Decided | IQueryable from repositories, executed through IAsyncQueryableExecuter. | [ADR-0007](decisions/ADR-0007-iqueryable-and-executer.md) |
 | R-029 | Where the Hangfire server runs | Decided | Inside HttpApi.Host. No separate Hangfire project. | [ADR-0008](decisions/ADR-0008-hangfire-in-host-and-job-rules.md) |
 | R-030 | Jobs are retried, so they may run twice or fail forever | Decided | Idempotent jobs, limited attempts, delays from Options. No overlap with the same arguments. Never killed or replaced for taking time. | [ADR-0008](decisions/ADR-0008-hangfire-in-host-and-job-rules.md) |
@@ -46,7 +46,7 @@ Source: section 2.11 of `docker-learning-project-plan.pdf` and `orderflow-phases
 | R-042 | Unsafe or oversized uploads | Decided | Both: size limit and content-signature allow-list, plus a ClamAV scan. | [ADR-0012](decisions/ADR-0012-upload-safety-and-consistency.md) |
 | R-043 | File and database out of sync after a crash | Decided | Record Pending first, write the file, then Active. A job marks stale Pending as Failed. | [ADR-0012](decisions/ADR-0012-upload-safety-and-consistency.md) |
 | R-045 | How the request source is determined, and whether it can be faked | Decided | The client_id claim in the JWT. Anonymous calls are Unknown. | [ADR-0013](decisions/ADR-0013-request-source-from-client-id.md) |
-| R-046 | How product search works | Decided | LIKE 'abc%' with an index. | [ADR-0014](decisions/ADR-0014-product-search-like-prefix.md) |
+| R-046 | How product search works | Decided | LIKE 'abc%' on a normalized search column (NormalizedName) with an index. | [ADR-0014](decisions/ADR-0014-product-search-like-prefix.md) |
 | R-048 | Swagger exposure and tooling | Decided | Swagger enabled in every environment. Tooling: the built-in OpenAPI document (Microsoft.AspNetCore.OpenApi) with Swagger UI. | [ADR-0015](decisions/ADR-0015-swagger-in-every-environment.md) |
 | R-049 | Audit columns: nullability and who acts with no user | Decided | All six nullable. A null means a record added by hand. | [ADR-0016](decisions/ADR-0016-nullable-audit-columns.md) |
 | R-050 | Soft-delete purge and bulk operations that skip the interceptor | Decided | Nothing deleted for now. No ExecuteDelete. ExecuteUpdate sets the audit columns through a helper. | [ADR-0005](decisions/ADR-0005-no-deletion-soft-delete-only.md) |
@@ -143,6 +143,5 @@ needs them.
 
 | Point | Where | Needed by |
 |-------|-------|-----------|
-| Precision and scale of money columns | ADR-0003 | Phase 1 |
-| Offset or cursor (keyset) pagination; clamp or reject a page size above the maximum | ADR-0006 | Phase 1 |
-| Collation and Arabic normalization for product search | ADR-0014 | Phase 1 |
+| Money amount with more than 2 decimal places (reject or round); currencies with 3 minor units | ADR-0003 | Phase 1 |
+| Clamp or reject a page size above the maximum | ADR-0006 | Phase 1 |
