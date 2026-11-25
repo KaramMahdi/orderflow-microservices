@@ -24,15 +24,16 @@ Option chosen: **every list query is paged. Default page size 10, maximum 1000, 
 - **Offset pagination (decided by Karam, 2026-11-25):** a page skips the rows of the earlier pages
   and takes the page size. With a page size of 10: skip 0 and take 10, then skip 10 and take 10,
   then skip 20 and take 10, and so on.
-- A request above the maximum is limited to the maximum (or rejected), never executed unbounded.
+- **A page size above the maximum is clamped to the maximum (decided by Karam, 2026-11-25),**
+  never rejected and never executed unbounded.
 - Paging uses the generic `PagedRequestDto` and `PagedResultDto<T>` from Domain.Shared.Layer.
 - The `ORDER BY` columns of a list query match an index (see [docs/indexes.md](../indexes.md)).
 
 ## Consequences
 
 - No unbounded collections reach the API or the memory.
-- **Still open:** whether a page size above the maximum is clamped or rejected. The index catalog
-  also mentions a keyset export on `OrderNumber`; it is not the general list approach.
+- The index catalog also mentions a keyset export on `OrderNumber`; it is not the general list
+  approach.
 - Tests: a request without a size gets 10 items; a request above 1000 never returns more than 1000.
 
 ## Revisit when

@@ -144,4 +144,3 @@ needs them.
 | Point | Where | Needed by |
 |-------|-------|-----------|
 | Money amount with more than 2 decimal places (reject or round); currencies with 3 minor units | ADR-0003 | Phase 1 |
-| Clamp or reject a page size above the maximum | ADR-0006 | Phase 1 |
