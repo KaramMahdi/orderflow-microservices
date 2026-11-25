@@ -2,6 +2,7 @@ using System.Reflection;
 using ArchUnitNET.Fluent;
 using ArchUnitNET.Loader;
 using ArchUnitNET.xUnitV3;
+using Domain.Shared.Layer.Context;
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
 using ArchitectureModel = ArchUnitNET.Domain.Architecture;
 
@@ -43,6 +44,19 @@ public sealed class LayerDependencyTests
 
         IArchRule rule = Types().That().ResideInAssembly(Load(ProjectNames.Domain))
             .Should().NotDependOnAny(Types().That().ResideInAssembly(layersAboveDomain[0], layersAboveDomain[1..]))
+            .WithoutRequiringPositiveResults();
+
+        rule.Check(Architecture);
+    }
+
+    /// <summary>
+    /// ADR-0013: Application Services read the request context and pass plain values to the Domain.
+    /// </summary>
+    [Fact]
+    public void DomainDoesNotUseTheRequestContext()
+    {
+        IArchRule rule = Types().That().ResideInAssembly(Load(ProjectNames.Domain))
+            .Should().NotDependOnAny(typeof(IRequestContext))
             .WithoutRequiringPositiveResults();
 
         rule.Check(Architecture);
