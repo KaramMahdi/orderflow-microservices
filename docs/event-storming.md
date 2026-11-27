@@ -1,7 +1,7 @@
 # Event storming
 
-**Draft v0 (Phase 0).** Built from the aggregates and events in the plans. It will be refined with
-Karam's answers and during Phase 1. Nothing here is a decision; open points are listed at the end.
+**Draft v1 (Phase 1, Milestone 3).** Built from the aggregates and events in the plans, then aligned
+with the domain model in code. Decisions are marked with their source; open points are listed at the end.
 
 Legend: **Command** (an intent, blue sticky), **Event** (a fact in the past tense, orange sticky),
 **Aggregate** (yellow), **Policy** (when X then Y, lilac), **Read model** (green), **Hot spot**
@@ -11,13 +11,13 @@ Legend: **Command** (an intent, blue sticky), **Event** (a fact in the past tens
 
 | Context | Aggregate root | Inside | Key invariants | Domain events |
 |---------|----------------|--------|----------------|---------------|
-| Orders | Order | OrderItem; Address and Money (value objects) | No items after payment; total equals the sum of items; all items in the order's one currency; quantity above zero; only allowed status transitions | OrderPlaced, OrderConfirmed, OrderPaid, OrderCancelled |
-| Catalog | Product | Sku; one ProductPrice (Money) per currency | SKU unique; one price per currency; price not negative | ProductPriceChanged |
-| Catalog | StockItem | OnHand, Reserved counter, StockMovements (Reserved, Completed, Failed) | Quantity never negative; Reserved never above on hand | StockReserved, StockCompleted, StockReleased |
-| Customers | Customer | Email and Address (value objects) | Email valid and unique | CustomerRegistered |
-| Payments | Payment | Money, attempts | Amount equals the order total; one successful payment per order | PaymentCompleted, PaymentFailed |
-| Notifications | Notification | Channel, recipient, attempts | Attempts not above the maximum (Options) | NotificationSent, NotificationFailed |
-| Files | FileRecord | Metadata only (name, path, size, hash, owner link) | Pending becomes Active once saved and scanned (or Rejected); the unique name never changes | FileStored |
+| Orders | Order | OrderItem; Address and Money (value objects) | Items given only when the order is placed (so none after payment); at least one item, one per product; total equals the sum of items; all items in the order's one currency; quantity above zero; only allowed status transitions | OrderPlaced, OrderConfirmed, OrderPaid, OrderCancelled |
+| Catalog | Product | Sku; one ProductPrice (Money) per currency | SKU unique; one price per currency; price not negative; NormalizedName follows Name | ProductPriceChanged |
+| Catalog | StockItem | OnHand, Reserved counter, StockMovements (Reserved, Completed, Failed); only the needed movements are loaded (decided 2026-11-28) | Quantity never negative; Reserved never above on hand; Reserved equals the sum of Reserved movements; one reservation per order; a released reservation is never completed | StockReserved, StockCompleted, StockReleased |
+| Customers | Customer | UserId; Email and Address (value objects) | Email valid and unique; one customer per user | CustomerRegistered |
+| Payments | Payment | Money, PaymentAttempts | Amount equals the order total (read through IOrderTotalReader by PaymentManager, decided 2026-11-28) and is above zero; the collected amount equals it; one successful payment per order; no attempt after Completed or Refunded; only a completed payment is refunded, once | PaymentCompleted, PaymentFailed, PaymentRefunded |
+| Notifications | Notification | Channel, recipient (id and address), attempts, next attempt at | Attempts not above the maximum (Options); only a Pending notification is sent or retried | NotificationSent, NotificationFailed |
+| Files | FileRecord | Metadata only (name, path, size, hash, owner link) | Pending becomes Active once saved and scanned (or Rejected, or Failed by the job); the unique name never changes | FileStored |
 
 ## Timeline: the main flow (place and pay an order)
 
@@ -34,7 +34,7 @@ Legend: **Command** (an intent, blue sticky), **Event** (a fact in the past tens
 | 8b | Policy: when payment completed | Complete stock movement | StockItem | StockCompleted | Catalog |
 | 9 | Policy: when payment failed | Nothing is cancelled: the order keeps waiting for payment while its reservation lives | Order | - | Orders |
 | 10 | Hangfire job, every 5 minutes | Mark expired reservations Failed (older than 15 minutes), then cancel their orders | StockItem, Order | StockReleased, OrderCancelled | Catalog, Orders |
-| 11 | Policy: when a payment arrives after the reservation expired (the order is already Cancelled) | Refund payment (simulated in Phase 1). The order stays Cancelled | Payment | *(refund event: name to confirm)* | Payments |
+| 11 | Policy: when a payment arrives after the reservation expired (the order is already Cancelled) | Refund payment (simulated in Phase 1). The order stays Cancelled | Payment | PaymentRefunded | Payments |
 | 12 | Policy: when an order or payment event happens | Send notification | Notification | NotificationSent or NotificationFailed | Notifications |
 | 13 | Hangfire job (Phase 3) | Generate invoice PDF | FileRecord | FileStored | Orders, Files |
 
@@ -77,10 +77,12 @@ Catalog also publishes product changes so Orders can keep its product snapshot (
   is final and is never reopened. (Phase 4: a Placed order that Catalog cannot reserve is decided
   with R-016.)
 - **H2. Resolved (ADR-0001):** a payment that arrives after the reservation expired is always
-  refunded. The order stays Cancelled.
+  refunded. The order stays Cancelled. The refund event is `PaymentRefunded` (decided by Karam,
+  2026-11-27).
 - **H3.** The cart: does it exist in Phase 1, and which context owns it?
-- **H4.** Customers: its own service in Phase 4, or inside Orders? How is a Customer created from an
-  Identity user at registration?
+- **H4.** Customers: its own service in Phase 4, or inside Orders? (Partly resolved: the Customer keeps
+  the Identity user id, one customer per user, decided by Karam on 2026-11-27. When registration
+  creates the Customer is still open.)
 - **H5.** Naming: the domain event is `OrderPlaced` but the integration event is `OrderCreated`.
   One name or two?
 - **H6.** Which completes the stock movement on payment: Orders telling Catalog, or Catalog

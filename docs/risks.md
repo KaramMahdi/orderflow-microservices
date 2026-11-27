@@ -31,7 +31,7 @@ Source: section 2.11 of `docker-learning-project-plan.pdf` and `orderflow-phases
 | R-001 | Two orders for the last unit at the same time | Decided | D: stock reservation as StockMovements, made atomic by A (R-001b). Option G added as a safety net: CHECK (0 <= Reserved <= OnHand), a violation answers 409. | [ADR-0001](decisions/ADR-0001-stock-reservation.md) |
 | R-001b | How the stock reservation is modeled and protected | Decided | A: a Reserved counter in StockItem updated by one conditional statement, the movement added in the same transaction. Job every 5 minutes, 15-minute cut-off. | [ADR-0001](decisions/ADR-0001-stock-reservation.md) |
 | R-002 | Duplicate order from a double click or a client retry | Decided | Rate limiting: one create-order per user per minute (tunable). The limits are accepted. | [ADR-0002](decisions/ADR-0002-duplicate-orders-rate-limiting.md) |
-| R-003 | Money and rounding errors | Decided | decimal(18,2) inside a Money value object (amount and currency code), several currencies. | [ADR-0003](decisions/ADR-0003-money-and-currencies.md) |
+| R-003 | Money and rounding errors | Decided | decimal(18,2) inside a Money value object (amount and currency code), several currencies. More than 2 decimal places is rejected, never rounded; currencies with 3 minor units are not supported for now; the currency code is checked for its ISO 4217 format only. | [ADR-0003](decisions/ADR-0003-money-and-currencies.md) |
 | R-004 | Dates and time zones | Decided | The server's local time (DateTime.Now). The same TZ in every container. | [ADR-0004](decisions/ADR-0004-server-local-time.md) |
 | R-005 | Deleting data and audit trail | Decided | Nothing is deleted for now. Soft delete only. | [ADR-0005](decisions/ADR-0005-no-deletion-soft-delete-only.md) |
 | R-006 | Unbounded list queries (memory) | Decided | Offset pagination. Page size 10 by default, 1000 at most, from Options. | [ADR-0006](decisions/ADR-0006-paging.md) |
@@ -143,4 +143,4 @@ needs them.
 
 | Point | Where | Needed by |
 |-------|-------|-----------|
-| Money amount with more than 2 decimal places (reject or round); currencies with 3 minor units | ADR-0003 | Phase 1 |
+| None at the moment. (The money scale point of ADR-0003 was decided by Karam on 2026-11-27.) | - | - |

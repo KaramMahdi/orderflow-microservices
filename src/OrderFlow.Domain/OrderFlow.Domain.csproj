@@ -5,4 +5,9 @@
     <ProjectReference Include="..\OrderFlow.Domain.Shared\OrderFlow.Domain.Shared.csproj" />
   </ItemGroup>
 
+  <!-- Factories that only a Domain Manager may call are internal; the domain tests call them directly. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="OrderFlow.Domain.Tests" />
+  </ItemGroup>
+
 </Project>
