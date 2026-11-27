@@ -8,9 +8,10 @@ namespace OrderFlow.Domain.Payments;
 
 /// <summary>
 /// An attempt to collect the total of one order (glossary), with its tries.
-/// Invariants: the amount is the order total and above zero; no attempt after completion or refund;
-/// only a completed payment is refunded, once. "One successful payment per order" spans payments and
-/// is checked by <see cref="PaymentManager"/>.
+/// Invariants: the amount is the order total (only <see cref="PaymentManager"/> starts a payment, with
+/// the total it reads) and above zero; the collected amount equals the amount; no attempt after
+/// completion or refund; only a completed payment is refunded, once. "One successful payment per
+/// order" spans payments and is checked by <see cref="PaymentManager"/>.
 /// </summary>
 public sealed class Payment : AggregateRoot
 {
@@ -39,10 +40,10 @@ public sealed class Payment : AggregateRoot
     /// <summary>The tries, in order.</summary>
     public IReadOnlyList<PaymentAttempt> Attempts => _attempts.AsReadOnly();
 
-    /// <summary>Starts a payment for an order. Prefer <see cref="PaymentManager.StartAsync"/>.</summary>
+    /// <summary>Starts a payment for an order. Called only by <see cref="PaymentManager.StartAsync"/>.</summary>
     /// <param name="orderId">The order.</param>
     /// <param name="amount">The order total.</param>
-    public static Payment Start(Guid orderId, Money amount)
+    internal static Payment Start(Guid orderId, Money amount)
     {
         ArgumentNullException.ThrowIfNull(amount);
         Check.NotEmpty(orderId, nameof(OrderId), PaymentsMessageKeys.FieldRequired);
@@ -57,10 +58,17 @@ public sealed class Payment : AggregateRoot
 
     /// <summary>The provider collected the money. Raises <see cref="PaymentCompleted"/>. Prefer <see cref="PaymentManager.CompleteAsync"/>.</summary>
     /// <param name="providerReference">The provider id of the payment.</param>
-    public void RecordSuccessfulAttempt(string? providerReference)
+    /// <param name="collectedAmount">The amount the provider collected; must equal <see cref="Amount"/>.</param>
+    public void RecordSuccessfulAttempt(string? providerReference, Money collectedAmount)
     {
+        ArgumentNullException.ThrowIfNull(collectedAmount);
         EnsureOpen();
         var reference = Check.Text(providerReference, nameof(ProviderReference), PaymentConstants.ProviderReferenceMaxLength, PaymentsMessageKeys.FieldRequired, PaymentsMessageKeys.FieldTooLong);
+
+        if (collectedAmount != Amount)
+        {
+            throw new ErrorException(ErrorCode.Conflict, PaymentsMessageKeys.CollectedAmountMismatch, Id, Amount.ToString(), collectedAmount.ToString());
+        }
 
         _attempts.Add(new PaymentAttempt(Guid.CreateVersion7(), PaymentAttemptResult.Succeeded, reference, failureReason: null));
         ProviderReference = reference;

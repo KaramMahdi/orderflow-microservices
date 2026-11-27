@@ -21,6 +21,12 @@ public static class PaymentsMessageKeys
     /// <summary>Only a completed payment can be refunded. Arguments: the payment id, its status.</summary>
     public static readonly MessageKey PaymentNotCompleted = new(Modules.Payments, nameof(PaymentNotCompleted));
 
+    /// <summary>The order to pay does not exist. Arguments: the order id.</summary>
+    public static readonly MessageKey OrderNotFound = new(Modules.Payments, nameof(OrderNotFound));
+
+    /// <summary>The provider collected another amount than the order total. Arguments: the payment id, the expected amount, the collected amount.</summary>
+    public static readonly MessageKey CollectedAmountMismatch = new(Modules.Payments, nameof(CollectedAmountMismatch));
+
     /// <summary>The order already has a completed payment. Arguments: the order id.</summary>
     public static readonly MessageKey OrderAlreadyPaid = new(Modules.Payments, nameof(OrderAlreadyPaid));
 }

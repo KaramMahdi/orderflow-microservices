@@ -36,7 +36,7 @@ public sealed class PaymentInvariantTests
     {
         var payment = Payment.Start(Guid.CreateVersion7(), Amount);
 
-        ErrorAssert.Throws(ErrorCode.ValidationFailed, PaymentsMessageKeys.FieldRequired, () => payment.RecordSuccessfulAttempt(reference));
+        ErrorAssert.Throws(ErrorCode.ValidationFailed, PaymentsMessageKeys.FieldRequired, () => payment.RecordSuccessfulAttempt(reference, Amount));
         Assert.Equal(PaymentStatus.Pending, payment.Status);
         Assert.Empty(payment.Attempts);
     }
@@ -47,7 +47,7 @@ public sealed class PaymentInvariantTests
         var payment = Payment.Start(Guid.CreateVersion7(), Amount);
         var tooLong = new string('r', PaymentConstants.ProviderReferenceMaxLength + 1);
 
-        ErrorAssert.Throws(ErrorCode.ValidationFailed, PaymentsMessageKeys.FieldTooLong, () => payment.RecordSuccessfulAttempt(tooLong));
+        ErrorAssert.Throws(ErrorCode.ValidationFailed, PaymentsMessageKeys.FieldTooLong, () => payment.RecordSuccessfulAttempt(tooLong, Amount));
         ErrorAssert.Throws(ErrorCode.ValidationFailed, PaymentsMessageKeys.FieldTooLong, () => payment.RecordFailedAttempt(tooLong, null));
     }
 
@@ -87,10 +87,10 @@ public sealed class PaymentInvariantTests
     public void ARefundedPaymentAcceptsNoAttempt()
     {
         var payment = Payment.Start(Guid.CreateVersion7(), Amount);
-        payment.RecordSuccessfulAttempt("PSP-1");
+        payment.RecordSuccessfulAttempt("PSP-1", Amount);
         payment.Refund();
 
-        ErrorAssert.Throws(ErrorCode.Conflict, PaymentsMessageKeys.PaymentNotOpen, () => payment.RecordSuccessfulAttempt("PSP-2"));
+        ErrorAssert.Throws(ErrorCode.Conflict, PaymentsMessageKeys.PaymentNotOpen, () => payment.RecordSuccessfulAttempt("PSP-2", Amount));
     }
 
     [Fact]
@@ -98,11 +98,11 @@ public sealed class PaymentInvariantTests
     {
         var orderId = Guid.CreateVersion7();
         var refunded = Payment.Start(orderId, Amount);
-        refunded.RecordSuccessfulAttempt("PSP-1");
+        refunded.RecordSuccessfulAttempt("PSP-1", Amount);
         refunded.Refund();
-        var manager = new PaymentManager(new PaymentRepository([refunded]), new InMemoryQueryableExecuter());
+        var manager = new PaymentManager(new PaymentRepository([refunded]), new InMemoryQueryableExecuter(), new OrderTotalReader(orderId, Amount));
 
-        var payment = await manager.StartAsync(orderId, Amount, TestContext.Current.CancellationToken);
+        var payment = await manager.StartAsync(orderId, TestContext.Current.CancellationToken);
 
         Assert.Equal(PaymentStatus.Pending, payment.Status);
     }
@@ -111,7 +111,7 @@ public sealed class PaymentInvariantTests
     public void SpecificationsSelectByOrderStatusAndReference()
     {
         var payment = Payment.Start(Guid.CreateVersion7(), Amount);
-        payment.RecordSuccessfulAttempt("PSP-1");
+        payment.RecordSuccessfulAttempt("PSP-1", Amount);
 
         Assert.True(new PaymentsOfOrderSpecification(payment.OrderId).And(new CompletedPaymentsSpecification()).IsSatisfiedBy(payment));
         Assert.True(new PaymentByProviderReferenceSpecification("PSP-1").IsSatisfiedBy(payment));
@@ -120,5 +120,11 @@ public sealed class PaymentInvariantTests
     private sealed class PaymentRepository(List<Payment> payments) : IPaymentRepository
     {
         public IQueryable<Payment> GetQueryable() => payments.AsQueryable();
+    }
+
+    private sealed class OrderTotalReader(Guid orderId, Money total) : IOrderTotalReader
+    {
+        public Task<Money?> GetTotalAsync(Guid id, CancellationToken cancellationToken = default) =>
+            Task.FromResult(id == orderId ? total : null);
     }
 }

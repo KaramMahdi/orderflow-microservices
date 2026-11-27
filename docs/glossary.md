@@ -62,7 +62,7 @@ Rules:
 | On hand | The quantity physically in stock. |
 | Reserved | The counter of the quantity held by Reserved movements. Never above on hand. |
 | Available | On hand minus Reserved. What can still be ordered. |
-| Stock movement | A record of quantity held or taken for an order: `Reserved` (1), then `Completed` (2) or `Failed` (3). Lives inside its StockItem; one per order and product. |
+| Stock movement | A record of quantity held or taken for an order: `Reserved` (1), then `Completed` (2) or `Failed` (3). Lives inside its StockItem; one per order and product. The repository loads only the movements a use case needs (those of the order, or the Reserved ones), never all of them (decided by Karam, 2026-11-28). |
 | Release | Marking a Reserved movement Failed (`ReleaseReservation`). Releasing twice does nothing. |
 | Reservation | A Reserved stock movement. Lives 15 to 20 minutes unless paid. |
 | Completed (movement) | The order was paid: the stock really leaves (on hand and Reserved both go down). |
@@ -87,6 +87,8 @@ Rules:
 | Payment provider | The external system that moves the money. Simulated in Phase 1. |
 | Provider reference | The provider's id for a payment. Unique when present. |
 | Provider adapter | The anti-corruption layer in Payments.Infrastructure that translates the provider's model. |
+| Payment amount | Always the order total. Only `PaymentManager` starts a payment, and it reads the total through `IOrderTotalReader`; the caller never passes an amount. The amount the provider collected must equal it (decided by Karam, 2026-11-28). |
+| Order total reader | `IOrderTotalReader`: how Payments reads an order total without loading the Order. Implemented by the Orders module in Phase 1; its source is revisited in Phase 4 (R-016, R-017). |
 | Payment status | `Pending` (1), `Completed` (2), `Failed` (3, another attempt may follow), `Refunded` (4, final). |
 | Attempt | One try to pay (`PaymentAttempt`), inside the Payment: `Succeeded` or `Failed`. |
 | Payment completed | The money was collected. |
