@@ -41,8 +41,15 @@ Why: exact arithmetic, and no exchange-rate data to maintain.
   ("all items in the order's one currency").
 - **Precision and scale (decided by Karam, 2026-11-25):** every money amount column is
   `decimal(18,2)`: 18 digits in total, 2 of them after the decimal point.
-- **Still open:** what happens to an amount with more than 2 decimal places (reject or round), and
-  how currencies with 3 minor units (for example KWD, BHD, JOD, OMR) are handled.
+- **More than 2 decimal places (decided by Karam, 2026-11-27): rejected, never rounded.**
+  `Money.Create` throws an `ErrorException` with `ErrorCode.ValidationFailed` and
+  `Common.MoneyAmountTooPrecise`.
+- **Currencies with 3 minor units (decided by Karam, 2026-11-27): not supported for now.** Every
+  currency uses 2 decimal places, matching `decimal(18,2)`. Supporting KWD, BHD, JOD or OMR needs a new
+  decision (a wider scale or a scale per currency).
+- **Currency code (decided by Karam, 2026-11-27): format only.** The domain accepts three letters
+  (ISO 4217) and stores them in upper case. A list of allowed currencies, if one is needed, is checked
+  in the Application layer from Options, not in the domain.
 - Tests: domain unit tests for `Money` (equality, arithmetic, currency mismatch) and for the Order
   currency invariant.
 
