@@ -44,7 +44,9 @@ service; the other adapters stay shared either way.
   belongs to. Files asks the owning service through `IFileOwnerAccessChecker` (declared in
   Domain.Shared.Layer, implemented by each owning service). If the owning service cannot answer,
   access is denied. In Phase 1 the check is a direct call to the owning module.
-- **R-062:** `IFileStorage` stays in Shared.Infrastructure.
+- **R-062:** the `IFileStorage` implementation stays in Shared.Infrastructure. The interface is
+  declared in Domain.Shared.Layer with the other abstractions (ADR-0017). Wording clarified by Karam,
+  2026-11-26.
 
 ## Consequences
 

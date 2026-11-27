@@ -1,0 +1,72 @@
+# OrderFlow Phase 1: the host and SQL Server.
+# Every value comes from .env (copy .env.example to .env and fill it in).
+
+services:
+  sqlserver:
+    image: ${SQL_SERVER_IMAGE}
+    environment:
+      ACCEPT_EULA: ${SQL_ACCEPT_EULA}
+      MSSQL_PID: ${SQL_PRODUCT_ID}
+      MSSQL_SA_PASSWORD: ${SQL_SA_PASSWORD:?SQL_SA_PASSWORD must be set in .env}
+      MSSQL_MEMORY_LIMIT_MB: ${SQL_MEMORY_LIMIT_MB}
+      TZ: ${SERVER_TIMEZONE}
+    mem_limit: ${SQL_MEM_LIMIT}
+    volumes:
+      - sqldata:/var/opt/mssql
+    healthcheck:
+      # $$ keeps the variable for the container shell instead of Compose.
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" -b -o /dev/null || exit 1"]
+      interval: ${HEALTHCHECK_INTERVAL}
+      timeout: ${HEALTHCHECK_TIMEOUT}
+      retries: ${HEALTHCHECK_RETRIES}
+      start_period: ${SQL_HEALTHCHECK_START_PERIOD}
+
+  # One-shot: creates the application login (SQL_APP_LOGIN) as sa, then exits.
+  sqlserver-init:
+    image: ${SQL_SERVER_IMAGE}
+    entrypoint: ["/opt/mssql-tools18/bin/sqlcmd"]
+    command: ["-C", "-S", "sqlserver,${SQL_PORT}", "-U", "sa", "-b", "-i", "/scripts/init-app-login.sql"]
+    environment:
+      # sqlcmd reads the sa password from SQLCMDPASSWORD and the scripting variables from the environment.
+      SQLCMDPASSWORD: ${SQL_SA_PASSWORD:?SQL_SA_PASSWORD must be set in .env}
+      AppLogin: ${SQL_APP_LOGIN:?SQL_APP_LOGIN must be set in .env}
+      AppPassword: ${SQL_APP_PASSWORD:?SQL_APP_PASSWORD must be set in .env}
+      TZ: ${SERVER_TIMEZONE}
+    mem_limit: ${SQL_INIT_MEM_LIMIT}
+    volumes:
+      - ./docker/sqlserver:/scripts:ro
+    restart: "no"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+  host:
+    build:
+      context: .
+      dockerfile: src/OrderFlow.HttpApi.Host/Dockerfile
+      args:
+        DOTNET_SDK_IMAGE: ${DOTNET_SDK_IMAGE}
+        DOTNET_ASPNET_IMAGE: ${DOTNET_ASPNET_IMAGE}
+    image: ${HOST_IMAGE}
+    ports:
+      - "${HOST_HTTP_PORT}:${HOST_CONTAINER_PORT}"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_HTTP_PORTS: ${HOST_CONTAINER_PORT}
+      ConnectionStrings__Default: Server=sqlserver,${SQL_PORT};Database=${SQL_DATABASE};User Id=${SQL_APP_LOGIN};Password=${SQL_APP_PASSWORD};Encrypt=True;TrustServerCertificate=True
+      TZ: ${SERVER_TIMEZONE}
+    mem_limit: ${HOST_MEM_LIMIT}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      sqlserver-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent --show-error http://localhost:$${ASPNETCORE_HTTP_PORTS}/health || exit 1"]
+      interval: ${HEALTHCHECK_INTERVAL}
+      timeout: ${HEALTHCHECK_TIMEOUT}
+      retries: ${HEALTHCHECK_RETRIES}
+      start_period: ${HOST_HEALTHCHECK_START_PERIOD}
+
+volumes:
+  sqldata:

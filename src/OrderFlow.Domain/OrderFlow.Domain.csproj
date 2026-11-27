@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain.Shared.Layer\Domain.Shared.Layer.csproj" />
+    <ProjectReference Include="..\OrderFlow.Domain.Shared\OrderFlow.Domain.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

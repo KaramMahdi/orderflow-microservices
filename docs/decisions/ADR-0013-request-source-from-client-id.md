@@ -36,6 +36,9 @@ Option chosen: **A. Anonymous calls are Unknown.**
 - A middleware fills a per-request `IRequestContext` (CorrelationId, UserId, Source, ClientVersion,
   Language). Application Services read it through the interface; the Domain never sees it and gets
   the source as a plain value.
+- `CorrelationId` is a string, not a Guid (decided by Karam, 2026-11-25), so any `X-Correlation-ID`
+  header value a client sends is accepted. This is an accepted exception to golden rule 13: it is a
+  tracing value, not the identifier of a record.
 - The source flows into every log line, orders, audit rows, integration events and Hangfire jobs.
 - Calls made from Swagger carry a token issued for the Api client, so they are recorded as Api.
 - The source is never used for authorization or pricing unless it comes from the token.

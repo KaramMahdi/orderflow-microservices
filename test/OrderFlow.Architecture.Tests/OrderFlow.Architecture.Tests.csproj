@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="TngTech.ArchUnitNET.xUnitV3" />
+  </ItemGroup>
+
+  <!-- References every src project so the architecture tests can inspect each assembly. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Domain.Shared.Layer\Domain.Shared.Layer.csproj" />
+    <ProjectReference Include="..\..\src\OrderFlow.Application\OrderFlow.Application.csproj" />
+    <ProjectReference Include="..\..\src\OrderFlow.Application.Contracts\OrderFlow.Application.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\OrderFlow.DbMigrator\OrderFlow.DbMigrator.csproj" />
+    <ProjectReference Include="..\..\src\OrderFlow.Domain\OrderFlow.Domain.csproj" />
+    <ProjectReference Include="..\..\src\OrderFlow.Domain.Shared\OrderFlow.Domain.Shared.csproj" />
+    <ProjectReference Include="..\..\src\OrderFlow.EntityFrameworkCore\OrderFlow.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\src\OrderFlow.HttpApi\OrderFlow.HttpApi.csproj" />
+    <ProjectReference Include="..\..\src\OrderFlow.HttpApi.Client\OrderFlow.HttpApi.Client.csproj" />
+    <ProjectReference Include="..\..\src\OrderFlow.HttpApi.Host\OrderFlow.HttpApi.Host.csproj" />
+    <ProjectReference Include="..\..\src\Payments.Infrastructure\Payments.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Shared.AspNetCore\Shared.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Shared.Infrastructure\Shared.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
