@@ -1,6 +1,7 @@
 # Glossary (ubiquitous language)
 
-**Status: first draft (Phase 0).** Refined after the event storming answers and during Phase 1.
+**Status: first draft (Phase 0), aligned with the domain model in Phase 1 (Milestone 3).** Refined
+after the event storming answers and during Phase 1.
 
 Rules:
 
@@ -18,8 +19,11 @@ Rules:
 | Value object | An immutable object compared by value, created through a validated factory method (Money, Email, Address). |
 | Audit columns | CreatorId, CreationTime, LastModifierId, LastModificationTime, DeletedBy, DeletedAt. All nullable. |
 | Soft delete | Marking a row deleted (DeletedBy, DeletedAt) instead of removing it. The only kind of delete. |
-| Money | An amount (decimal) and a currency code. |
-| Currency | The currency code of an amount. An order has exactly one. |
+| Money | An amount (decimal) and a currency code. Never negative; at most two decimal places (an amount with more is rejected, never rounded). Currencies with three minor units are not supported (ADR-0003). |
+| Currency | The currency code of an amount: three letters (ISO 4217), stored in upper case. Only the format is checked in the domain. An order has exactly one. |
+| Address | A postal address: street, city, optional postal code and a two-letter country code (ISO 3166-1 alpha-2). A value object in the shared kernel, used by Orders and Customers. |
+| Domain manager | A domain service (`...Manager`) for a rule that spans several aggregates or needs a repository, such as a unique SKU. It changes aggregates but never saves. |
+| Specification | A reusable query rule built on an expression (`...Specification`). It filters a repository query and checks an object in memory. |
 | Request source | Where a request came from: Unknown, Web, Mobile or Api, taken from the client_id claim. |
 | CorrelationId | The id that follows one request through logs, messages and jobs. Returned in X-Correlation-ID. |
 | ErrorCode | An HTTP-like number that classifies an error (400, 401, 403, 404, 409, 422, 429, 500, 503). |
@@ -34,9 +38,10 @@ Rules:
 | Term | Meaning |
 |------|---------|
 | Order | A customer's request to buy products, in one currency. The aggregate root of this context. |
-| Order item | One product line of an order: product, quantity, unit price. Lives only inside an Order. |
-| Order number | The business number of an order. Unique. Different from the Guid Id. |
-| Order status | The lifecycle state of an order, controlled by the Order: Placed, then Confirmed, then Paid or Cancelled (ADR-0001). Enum names are set in Phase 1. |
+| Order item | One product line of an order: product, quantity, unit price. Lives only inside an Order. Given when the order is placed, never added or removed afterwards; one item per product. |
+| Order item line | The input of one item when an order is placed (`OrderItemLine`): product, quantity, unit price. |
+| Order number | The business number of an order. Unique. Different from the Guid Id. Produced by `IOrderNumberGenerator`; the format is decided with the persistence work. |
+| Order status | The lifecycle state of an order, controlled by the Order (ADR-0001): `Placed` (1), `Confirmed` (2), `Paid` (3), `Cancelled` (4). Allowed: Placed to Confirmed or Cancelled; Confirmed to Paid or Cancelled. Paid and Cancelled are final. |
 | Confirmed | The stock of every product of the order is reserved; the order waits for payment. |
 | Place an order | The act of creating an order. Limited by the create-order rate limit. |
 | Total | The sum of the order items, in the order's currency. |
@@ -50,13 +55,15 @@ Rules:
 | Term | Meaning |
 |------|---------|
 | Product | Something that can be sold. The aggregate root for names and prices. |
-| SKU | The stock-keeping unit: the business code of a product. Unique among non-deleted products. |
+| SKU | The stock-keeping unit: the business code of a product. Unique among non-deleted products. Stored in upper case; letters, digits, '-' and '_' only. |
+| Normalized name | The product name after the ADR-0014 normalization (`NormalizedName`). Prefix search runs on it. Set by the Product whenever the name changes. |
 | Product price | The price of a product in one currency. One per currency. |
 | Stock item | The stock of one product: on hand and reserved. The aggregate root for stock. |
 | On hand | The quantity physically in stock. |
 | Reserved | The counter of the quantity held by Reserved movements. Never above on hand. |
 | Available | On hand minus Reserved. What can still be ordered. |
-| Stock movement | A record of quantity held or taken for an order: Reserved, then Completed or Failed. |
+| Stock movement | A record of quantity held or taken for an order: `Reserved` (1), then `Completed` (2) or `Failed` (3). Lives inside its StockItem; one per order and product. |
+| Release | Marking a Reserved movement Failed (`ReleaseReservation`). Releasing twice does nothing. |
 | Reservation | A Reserved stock movement. Lives 15 to 20 minutes unless paid. |
 | Completed (movement) | The order was paid: the stock really leaves (on hand and Reserved both go down). |
 | Failed (movement) | The reservation was released (not paid in time). Reserved goes down. |
@@ -67,9 +74,9 @@ Rules:
 | Term | Meaning |
 |------|---------|
 | Customer | A person who buys. Not the same as a User in Identity. |
-| Email | A validated email address (value object). Unique among customers. |
-| Address | A customer's address (value object). |
-| Register | Becoming a customer. *(how it relates to the Identity user: to confirm)* |
+| Email | A validated email address (value object), stored in lower case. Unique among customers. |
+| Address | A customer's address (the shared Address value object). |
+| Register | Becoming a customer. The Customer keeps the Identity user id (`UserId`); one customer per user (decided by Karam, 2026-11-27). |
 | Cart | *(to confirm: Phase 2 mentions a cart, but its owner context is not decided)* |
 
 ## Payments (supporting)
@@ -80,10 +87,11 @@ Rules:
 | Payment provider | The external system that moves the money. Simulated in Phase 1. |
 | Provider reference | The provider's id for a payment. Unique when present. |
 | Provider adapter | The anti-corruption layer in Payments.Infrastructure that translates the provider's model. |
-| Attempt | One try to pay. |
+| Payment status | `Pending` (1), `Completed` (2), `Failed` (3, another attempt may follow), `Refunded` (4, final). |
+| Attempt | One try to pay (`PaymentAttempt`), inside the Payment: `Succeeded` or `Failed`. |
 | Payment completed | The money was collected. |
 | Payment failed | The money was not collected. |
-| Refund | Returning a collected payment. Every late payment is refunded (ADR-0001). Simulated in Phase 1. |
+| Refund | Returning a collected payment (`PaymentRefunded`). Every late payment is refunded (ADR-0001). Refunding twice does nothing. Simulated in Phase 1. |
 | Late payment | A payment that arrives after its reservation expired (the movement is Failed and the order is Cancelled). |
 
 ## Notifications (generic)
@@ -91,9 +99,10 @@ Rules:
 | Term | Meaning |
 |------|---------|
 | Notification | A message (email or SMS style) sent to a recipient after an event. The aggregate root. |
-| Channel | How a notification is sent (for example email, SMS). |
-| Recipient | Who receives the notification. |
-| Attempt | One try to send. The maximum number comes from Options. |
+| Channel | How a notification is sent: `Email` (1) or `Sms` (2). |
+| Recipient | Who receives the notification: the user (`RecipientId`) and where it goes (`RecipientAddress`, an email or a phone number). |
+| Notification status | `Pending` (1), `Sent` (2), `Failed` (3). Sent and Failed are final. |
+| Attempt | One try to send (`AttemptCount`). The maximum number and the retry delay come from Options. |
 | Next attempt at | When a pending notification is tried again. |
 
 ## Identity (generic)
@@ -120,6 +129,7 @@ Rules:
 | Storage path | The relative folder of the file: module and date. |
 | Original name | The name the user uploaded, kept for display and downloads only. Never used in a path. |
 | Owner link | ModuleName, EntityName and EntityId: the business record the file belongs to. |
+| Size and hash | `SizeBytes` and `Sha256` (64 lowercase hexadecimal characters), measured while streaming and saved when the file becomes Active. |
 | Pending | The record exists; the content is being written and scanned. |
 | Active | The content is saved and clean. The only status that is served. |
 | Rejected | Infected or not allowed. Never served. |
