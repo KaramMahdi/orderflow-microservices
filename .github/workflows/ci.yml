@@ -1,0 +1,55 @@
+# Continuous integration: restore, build (Release, warnings as errors) and run every test project.
+# Phase 1 keeps it to build and test. Phase 5 extends it (migrations, images, registry, secrets).
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'phase-*'
+  pull_request:
+  workflow_dispatch:
+
+# Read-only token: the workflow only reads the code.
+permissions:
+  contents: read
+
+# One run per branch or pull request; a newer push cancels the older run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  SOLUTION: OrderFlow.sln
+  CONFIGURATION: Release
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      # Actions are pinned to a full commit SHA; the comment names the release.
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore "$SOLUTION"
+
+      - name: Build
+        run: dotnet build "$SOLUTION" --configuration "$CONFIGURATION" --no-restore
+
+      # Exit code 8 means "zero tests ran" in a test project. Application.Tests and
+      # EntityFrameworkCore.Tests have no tests yet (milestones 4 and 6); a failing test still fails the run.
+      # TODO: remove --ignore-exit-code 8 once every test project has tests.
+      - name: Test
+        run: dotnet test --solution "$SOLUTION" --configuration "$CONFIGURATION" --no-build --ignore-exit-code 8
